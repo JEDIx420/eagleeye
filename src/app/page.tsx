@@ -225,7 +225,7 @@ export default function Home() {
               <WaybackSelector onSelect={(item) => console.log('Selected Wayback:', item)} />
             </div>
 
-            <InspectorPanel data={analysisData} elevationData={elevationData} onClose={() => setAnalysisData(null)} />
+            {/* <InspectorPanel data={analysisData} elevationData={elevationData} onClose={() => setAnalysisData(null)} /> */}
           </div>
         </motion.div>
       )}

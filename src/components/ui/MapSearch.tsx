@@ -74,7 +74,7 @@ export function MapSearch() {
     };
 
     return (
-        <div ref={wrapperRef} className="absolute top-4 left-4 z-50 w-[90%] md:w-80 max-w-sm">
+        <div ref={wrapperRef} className="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] md:w-80 max-w-sm">
             <div className="relative flex items-center bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-lg shadow-2xl overflow-hidden transition-all focus-within:border-cyan-500/50 focus-within:shadow-[0_0_15px_rgba(6,182,212,0.2)]">
                 <div className="pl-3 pr-2 py-3 text-slate-400">
                     {loading ? <Loader2 size={18} className="animate-spin text-cyan-400" /> : <Search size={18} />}
