@@ -18,9 +18,8 @@ export function HeroVideo({ onboardingStep }: HeroVideoProps) {
     const [videoSrc, setVideoSrc] = useState<string | null>(null);
 
     useEffect(() => {
-        // Randomly select a video on mount
-        const randomVideo = VIDEOS[Math.floor(Math.random() * VIDEOS.length)];
-        setVideoSrc(randomVideo);
+        // Always start sequence from v1
+        setVideoSrc(VIDEOS[0]);
     }, []);
 
     // Forcefully unmount when map is active to free GPU WebGL context
