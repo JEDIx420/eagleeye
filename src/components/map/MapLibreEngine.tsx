@@ -136,7 +136,7 @@ export default function MapLibreEngine({
                     type: 'circle',
                     source: 'mapbox-streets',
                     'source-layer': 'poi_label',
-                    filter: ['==', ['coalesce', ['get', 'class'], ''], 'hospital'],
+                    filter: ['==', ['coalesce', ['get', 'class'], 'unclassified'], 'hospital'],
                     paint: {
                         'circle-color': '#EF4444',
                         'circle-radius': 4
@@ -153,7 +153,7 @@ export default function MapLibreEngine({
                     type: 'circle',
                     source: 'mapbox-streets',
                     'source-layer': 'poi_label',
-                    filter: ['==', ['coalesce', ['get', 'class'], ''], 'school'],
+                    filter: ['==', ['coalesce', ['get', 'class'], 'unclassified'], 'school'],
                     paint: {
                         'circle-color': '#F59E0B',
                         'circle-radius': 4
@@ -234,13 +234,14 @@ export default function MapLibreEngine({
         <Map
             id={id}
             ref={mapRef}
-            initialViewState={!viewState ? { ...TRIVANDRUM_VIEW_STATE, longitude: 76.9467, latitude: 8.5241 } : undefined}
+            initialViewState={{ longitude: 76.9467, latitude: 8.5241, zoom: 12, pitch: 60, bearing: -15 }}
             {...(viewState ? { viewState, onMove: handleMove } : { onMove: handleMove })}
-            maxBounds={isMapReady ? TRIVANDRUM_BOUNDS : undefined}
-            minZoom={10}
+            // maxBounds={isMapReady ? TRIVANDRUM_BOUNDS : undefined}
+            // minZoom={10}
             reuseMaps
             style={{ width: '100%', height: '100%' }}
             maxPitch={85}
+            onData={(e: any) => console.log('[MapLibre Safe-Boot DATA]', e.dataType, e.sourceId)}
             onLoad={handleLoad}
             onStyleData={handleStyleData}
             transformRequest={transformRequest || defaultTransformRequest}

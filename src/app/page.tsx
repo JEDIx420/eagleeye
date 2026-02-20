@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Map, ArrowRight } from 'lucide-react';
@@ -8,7 +8,6 @@ import clsx from 'clsx';
 import { Sidebar } from '@/components/ui/Layout/Sidebar';
 import { HierarchicalLegend } from '@/components/ui/Controls/HierarchicalLegend';
 import { WaybackSelector } from '@/components/modules/TimeMachine/WaybackSelector';
-import StreetViewPanel from '@/components/modules/StreetView/StreetViewPanel';
 import { LocationSelector } from '@/components/ui/Onboarding/LocationSelector';
 import { useMapStore } from '@/store/map-store';
 import { ZoningLayer } from '@/components/layers/ZoningLayer';
@@ -27,9 +26,8 @@ import { Activity } from 'lucide-react';
 import { SystemHealthMonitor } from '@/components/ui/SystemHealth/SystemHealthMonitor';
 
 export default function Home() {
-  const store = useMapStore();
+  const masterPlan = useMapStore(state => state.masterPlan);
   const [onboardingStep, setOnboardingStep] = useState<'welcome' | 'location' | 'map'>('welcome');
-  const [viewMode, setViewMode] = useState<'COMMAND_CENTER' | 'STREET_VIEW'>('COMMAND_CENTER');
   const [analysisData, setAnalysisData] = useState<SectorAnalysis | null>(null);
 
   // Load Data for Analysis (Client-side for MVP)
@@ -63,7 +61,7 @@ export default function Home() {
     return () => { mounted = false; };
   }, []);
 
-  const onUpdateDraw = async (e: any) => {
+  const onUpdateDraw = useCallback(async (e: any) => {
     const geometry = e.features[0]?.geometry;
     const data = analyzeSelection(geometry, zoningData, infraData);
     setAnalysisData(data);
@@ -74,16 +72,15 @@ export default function Home() {
     } else {
       setElevationData([]);
     }
-  };
+  }, [zoningData, infraData]);
 
-  const onDeleteDraw = () => {
+  const onDeleteDraw = useCallback(() => {
     setAnalysisData(null);
-  };
+  }, []);
 
-  const { masterPlan } = store;
   const mpOpacity = masterPlan.visible ? masterPlan.opacity : 0;
 
-  const layers = [
+  const layers = useMemo(() => [
     ZoningLayer(
       // We assume data will eventually load properly, deck.gl handles null/empty gracefully
       loadStaticGeoJSON('metro-stations.json'),
@@ -107,7 +104,7 @@ export default function Home() {
       }
     ),
     ...(showBuildings && buildingsData ? [BuildingsLayer(buildingsData)] : [])
-  ];
+  ], [masterPlan.visible, masterPlan.sublayers, mpOpacity, showBuildings, buildingsData]);
 
   return (
     <main className="h-screen w-screen overflow-hidden relative bg-slate-950 font-sans text-slate-100 select-none">
@@ -186,20 +183,12 @@ export default function Home() {
               <div className="p-5 bg-slate-900 border border-slate-800 rounded-lg shadow-lg">
                 <h3 className="text-[10px] font-bold uppercase text-slate-500 mb-3 tracking-[0.2em]">Modules</h3>
 
-
-
-                <button
-                  onClick={() => setViewMode(viewMode === 'STREET_VIEW' ? 'COMMAND_CENTER' : 'STREET_VIEW')}
-                  className="w-full mb-3 py-3 bg-slate-800 text-cyan-400 border border-slate-700 rounded hover:bg-slate-700 hover:border-cyan-500 transition-all font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2"
-                >
-                  {viewMode === 'STREET_VIEW' ? 'Close Street View' : 'Launch Street View'}
-                </button>
-
                 <button
                   onClick={async () => {
                     if (!showBuildings) {
                       try {
-                        const center = store.viewState.longitude ? [store.viewState.longitude, store.viewState.latitude] : [76.9366, 8.5241];
+                        const currentViewState = useMapStore.getState().viewState;
+                        const center = currentViewState.longitude ? [currentViewState.longitude, currentViewState.latitude] : [76.9366, 8.5241];
                         const bbox: [number, number, number, number] = [
                           center[0] - 0.005, center[1] - 0.005,
                           center[0] + 0.005, center[1] + 0.005
@@ -225,52 +214,23 @@ export default function Home() {
           </Sidebar>
 
           <div className="w-full h-full relative bg-slate-950">
-            {viewMode !== 'STREET_VIEW' && (
-              <BaseMap
-                engine={store.showTerrain ? 'mapbox' : 'maplibre'}
-                layers={layers}
-                onDrawCreate={onUpdateDraw}
-                onDrawUpdate={onUpdateDraw}
-                onDrawDelete={onDeleteDraw}
-              />
-            )}
+            <BaseMap
+              layers={layers}
+              onDrawCreate={onUpdateDraw}
+              onDrawUpdate={onUpdateDraw}
+              onDrawDelete={onDeleteDraw}
+            />
 
             <div className="absolute top-4 right-4 z-10">
               <WaybackSelector onSelect={(item) => console.log('Selected Wayback:', item)} />
             </div>
-
-
 
             <InspectorPanel data={analysisData} elevationData={elevationData} onClose={() => setAnalysisData(null)} />
           </div>
         </motion.div>
       )}
 
-      {/* Full-Screen Street View Overlay */}
-      <AnimatePresence>
-        {viewMode === 'STREET_VIEW' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed inset-0 z-[100] flex flex-col bg-slate-900"
-          >
-            <div className="relative flex-1">
-              <StreetViewPanel />
-              <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)] z-30"></div>
-            </div>
-            <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-center shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20">
-              <button
-                onClick={() => setViewMode('COMMAND_CENTER')}
-                className="group relative px-8 py-3 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold rounded shadow-[0_0_15px_rgba(6,182,212,0.1)] hover:shadow-[0_0_25px_rgba(6,182,212,0.3)] border border-slate-700 hover:border-cyan-500 transition-all uppercase tracking-widest text-sm flex items-center gap-3"
-              >
-                <ArrowRight className="rotate-180 group-hover:-translate-x-1 transition-transform" size={16} />
-                Close System Scan
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* System Health Monitor */}
       <SystemHealthMonitor />

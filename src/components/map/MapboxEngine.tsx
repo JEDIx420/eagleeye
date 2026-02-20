@@ -25,10 +25,10 @@ interface MapboxEngineProps {
     drawMode?: string;
 }
 
-export default function MapboxEngine({
+const MapboxEngine = ({
     children,
     id = "main-map",
-    mapStyle = "mapbox://styles/mapbox/satellite-streets-v12",
+    mapStyle = "mapbox://styles/mapbox/dark-v11",
     viewState,
     onMove,
     layers = [],
@@ -36,7 +36,7 @@ export default function MapboxEngine({
     onDrawUpdate,
     onDrawDelete,
     drawMode
-}: MapboxEngineProps) {
+}: MapboxEngineProps) => {
     const mapRef = React.useRef<MapRef>(null);
     const setStoreViewState = useMapStore(state => state.setViewState);
     const presentDay = useMapStore(state => state.presentDay);
@@ -54,12 +54,27 @@ export default function MapboxEngine({
         }
     }, []);
 
-    const handleMove = (evt: any) => {
+    const memoizedInitialViewState = React.useMemo(() => ({
+        longitude: 76.9467,
+        latitude: 8.5241,
+        zoom: 12,
+        pitch: 45,
+        bearing: -15
+    }), []);
+
+    const handleMove = React.useCallback((evt: any) => {
         if (onMove) onMove(evt);
         if (id === "main-map") {
-            setStoreViewState(evt.viewState);
+            const current = useMapStore.getState().viewState;
+            const zoomed = Math.abs(current.zoom - evt.viewState.zoom) > 0.05;
+            const movedLng = Math.abs(current.longitude - evt.viewState.longitude) > 0.005;
+            const movedLat = Math.abs(current.latitude - evt.viewState.latitude) > 0.005;
+
+            if (zoomed || movedLng || movedLat || isNaN(current.zoom)) {
+                setStoreViewState(evt.viewState);
+            }
         }
-    };
+    }, [id, onMove, setStoreViewState]);
 
     // Index contours every 10m (approx 33ft), standard for topo maps
     const contourLayer = {
@@ -72,17 +87,16 @@ export default function MapboxEngine({
             'line-opacity': 0.3,
             'line-width': 1
         },
-        filter: ['all', ['==', ['%', ['get', 'ele'], 10], 0]]
+        filter: ['all', ['==', ['%', ['coalesce', ['get', 'ele'], 0], 10], 0]]
     };
 
     return (
         <Map
             id={id}
             ref={mapRef}
-            initialViewState={!viewState ? { ...TRIVANDRUM_VIEW_STATE, longitude: 76.9467, latitude: 8.5241 } : undefined}
-            {...(viewState ? { viewState, onMove: handleMove } : { onMove: handleMove })}
-            maxBounds={isMapReady ? TRIVANDRUM_BOUNDS : undefined}
-            minZoom={10}
+            initialViewState={memoizedInitialViewState}
+            onMove={handleMove}
+            {...(viewState ? { viewState } : {})}
             mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
             mapStyle={mapStyle as string}
             terrain={presentDay.terrain3D ? { source: 'mapbox-dem', exaggeration: 1.5 } : undefined}
@@ -114,7 +128,7 @@ export default function MapboxEngine({
                 type="circle"
                 source="composite"
                 source-layer="poi_label"
-                filter={['==', ['coalesce', ['get', 'class'], ''], 'hospital']}
+                filter={['==', ['coalesce', ['get', 'class'], 'unclassified'], 'hospital']}
                 paint={{
                     'circle-color': '#EF4444',
                     'circle-radius': 4
@@ -126,7 +140,7 @@ export default function MapboxEngine({
                 type="circle"
                 source="composite"
                 source-layer="poi_label"
-                filter={['==', ['coalesce', ['get', 'class'], ''], 'school']}
+                filter={['==', ['coalesce', ['get', 'class'], 'unclassified'], 'school']}
                 paint={{
                     'circle-color': '#F59E0B',
                     'circle-radius': 4
@@ -138,7 +152,7 @@ export default function MapboxEngine({
                 type="symbol"
                 source="composite"
                 source-layer="poi_label"
-                filter={['in', ['coalesce', ['get', 'class'], ''], ['literal', ['shop', 'mall', 'grocery']]]}
+                filter={['in', ['coalesce', ['get', 'class'], 'unclassified'], ['literal', ['shop', 'mall', 'grocery']]]}
                 layout={{
                     visibility: presentDay.commercial ? 'visible' : 'none',
                     'text-field': ['coalesce', ['get', 'name'], 'Facility'],
@@ -166,7 +180,7 @@ export default function MapboxEngine({
                 type="line"
                 source="composite"
                 source-layer="road"
-                filter={['==', ['coalesce', ['get', 'class'], ''], 'major']}
+                filter={['==', ['coalesce', ['get', 'class'], 'unclassified'], 'major']}
                 layout={{ visibility: presentDay.transport ? 'visible' : 'none' }}
                 paint={{
                     'line-color': '#06b6d4',
@@ -209,4 +223,6 @@ export default function MapboxEngine({
             {children}
         </Map>
     );
-}
+};
+
+export default React.memo(MapboxEngine);

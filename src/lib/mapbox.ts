@@ -3,9 +3,9 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 export const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
 // Strict Map Bounds for Thiruvananthapuram District
-export const TRIVANDRUM_BOUNDS: [number, number, number, number] = [
-    76.75, 8.35,  // Southwest coordinates
-    77.15, 8.65   // Northeast coordinates
+export const TRIVANDRUM_BOUNDS: [[number, number], [number, number]] = [
+    [76.75, 8.35],
+    [77.15, 8.65]
 ];
 
 export const INITIAL_VIEW_STATE = {
@@ -16,11 +16,10 @@ export const INITIAL_VIEW_STATE = {
     bearing: 0
 };
 
-// Initial view zoomed onto Trivandrum for the pilot
 export const TRIVANDRUM_VIEW_STATE = {
-    longitude: 76.9366,
+    longitude: 76.9467,
     latitude: 8.5241,
-    zoom: 11,
+    zoom: 12,
     pitch: 60,
     bearing: -15
 };
