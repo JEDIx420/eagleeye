@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 
 const MapboxEngine = dynamic(() => import('@/components/map/MapboxEngine'), { ssr: false });
+import { MapSearch } from '@/components/ui/MapSearch';
 
 interface BaseMapProps {
     children?: React.ReactNode;
@@ -19,5 +20,10 @@ interface BaseMapProps {
 }
 
 export default function BaseMap(props: BaseMapProps) {
-    return <MapboxEngine {...props} />;
+    return (
+        <div className="relative w-full h-full">
+            <MapboxEngine {...props} />
+            <MapSearch />
+        </div>
+    );
 }
