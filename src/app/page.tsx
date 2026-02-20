@@ -9,6 +9,7 @@ import { Sidebar } from '@/components/ui/Layout/Sidebar';
 import { HierarchicalLegend } from '@/components/ui/Controls/HierarchicalLegend';
 import { WaybackSelector } from '@/components/modules/TimeMachine/WaybackSelector';
 import { LocationSelector } from '@/components/ui/Onboarding/LocationSelector';
+import { HeroVideo } from '@/components/ui/HeroVideo';
 import { useMapStore } from '@/store/map-store';
 import { ZoningLayer } from '@/components/layers/ZoningLayer';
 import { RevenueLayer } from '@/components/layers/RevenueLayer';
@@ -107,7 +108,8 @@ export default function Home() {
   ], [masterPlan.visible, masterPlan.sublayers, mpOpacity, showBuildings, buildingsData]);
 
   return (
-    <main className="h-screen w-screen overflow-hidden relative bg-slate-950 font-sans text-slate-100 select-none">
+    <main className="h-screen w-screen overflow-hidden relative font-sans text-slate-100 select-none bg-black">
+      <HeroVideo onboardingStep={onboardingStep} />
 
       {/* Onboarding Flow */}
       <AnimatePresence mode="wait">
@@ -119,7 +121,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 text-center p-6 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black"
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center text-center p-6"
           >
             <div className="max-w-4xl relative">
               {/* Decorative Elements */}
