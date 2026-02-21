@@ -127,6 +127,10 @@ export default function Home() {
               {/* Decorative Elements */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
+              <div className="w-24 h-24 bg-slate-900 border border-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-2xl shadow-cyan-900/20 relative z-10">
+                <Map className="text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]" size={48} />
+              </div>
+
               <h1 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tighter uppercase relative z-10">
                 Eagle Eye
               </h1>
