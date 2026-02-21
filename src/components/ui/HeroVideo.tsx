@@ -1,33 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const VIDEOS = [
-    '/videos/v1.mp4',
-    '/videos/v2.mp4',
-    '/videos/v3.mp4',
-    '/videos/v4.mp4'
-];
 
 interface HeroVideoProps {
     onboardingStep: 'welcome' | 'location' | 'map';
 }
 
 export function HeroVideo({ onboardingStep }: HeroVideoProps) {
-    const [videoSrc, setVideoSrc] = useState<string | null>(null);
-
-    useEffect(() => {
-        // Always start sequence from v1
-        setVideoSrc(VIDEOS[0]);
-    }, []);
 
     // Forcefully unmount when map is active to free GPU WebGL context
     if (onboardingStep === 'map') return null;
 
     return (
         <AnimatePresence>
-            {(onboardingStep === 'welcome' || onboardingStep === 'location') && videoSrc && (
+            {(onboardingStep === 'welcome' || onboardingStep === 'location') && (
                 <motion.div
                     key="hero-video-container"
                     initial={{ opacity: 0 }}
@@ -37,7 +24,7 @@ export function HeroVideo({ onboardingStep }: HeroVideoProps) {
                     className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
                 >
                     <video
-                        src={videoSrc}
+                        src="/videos/v1.mp4"
                         autoPlay
                         muted
                         loop
